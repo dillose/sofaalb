@@ -8,42 +8,79 @@
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
 
 <style>
-body { margin:0; overflow:hidden; font-family:'Montserrat',sans-serif; color:white; background:black; }
-canvas { position:fixed; top:0; left:0; z-index:-1; width:100%; height:100%; }
-.book { width:90%; max-width:400px; height:80vh; margin:10vh auto; perspective:2000px; position:relative; }
-.page { width:100%; height:100%; background:rgba(255,182,193,0.95); position:absolute; border-radius:20px; box-shadow:0 0 20px rgba(255,255,255,0.5); padding:30px; box-sizing:border-box; transform-origin:left; transition:transform 0.8s; backface-visibility:hidden; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; }
-.page.flipped { transform:rotateY(-180deg); }
-h1 { font-family:'Great Vibes',cursive; font-size:36px; margin-bottom:15px; }
-button { padding:10px 18px; margin-top:15px; border:none; border-radius:20px; background:white; color:#ff4d79; cursor:pointer; font-weight:bold; }
-img { width:100%; max-height:200px; object-fit:cover; border-radius:15px; margin:10px 0; }
-.timer { font-size:18px; margin-top:15px; }
-.heart { position:fixed; font-size:18px; animation:float 5s linear forwards; }
+body {
+  margin:0;
+  font-family:'Montserrat',sans-serif;
+  color:white;
+  text-align:center;
+  background:black;
+  overflow-x:hidden;
+}
 
-@keyframes float { from {transform:translateY(0); opacity:1;} to {transform:translateY(-100vh); opacity:0;} }
+canvas {
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  z-index:-1;
+}
+
+h1 { font-family:'Great Vibes',cursive; font-size:48px; margin:30px 0 10px; }
+p { font-size:18px; margin:10px 0; }
+button {
+  padding:12px 25px;
+  border:none;
+  border-radius:25px;
+  background:white;
+  color:#ff4d79;
+  font-weight:bold;
+  cursor:pointer;
+  margin:15px;
+  font-size:16px;
+}
+
+img {
+  width:90%;
+  max-width:350px;
+  border-radius:15px;
+  margin-top:15px;
+  box-shadow:0 0 20px rgba(255,255,255,0.6);
+}
+
+.timer { font-size:20px; margin-top:20px; }
+
+/* Сердечки */
+.heart {
+  position:fixed;
+  font-size:18px;
+  animation:float 5s linear forwards;
+}
+
+@keyframes float {
+  from {transform:translateY(0); opacity:1;}
+  to {transform:translateY(-100vh); opacity:0;}
+}
 </style>
 </head>
 
 <body>
 
-<canvas id="stars"></canvas>
-
-<div class="book" id="book">
-
-<!-- Приветствие -->
-<div class="page" id="p0">
+<!-- Стартовая страница -->
+<div id="start">
   <h1>Софа ❤️</h1>
   <p>Это наш альбом за целый год…</p>
-  <button onclick="flip(0)">Открыть</button>
+  <button onclick="nextStep()">Открыть</button>
 </div>
 
 <!-- Вопрос любви -->
-<div class="page" id="p1">
+<div id="question" style="display:none;">
   <h1>Ты любишь меня?</h1>
-  <button onclick="flip(1)">Да 💖</button>
+  <button onclick="nextStep()">Да 💖</button>
 </div>
 
-<!-- Месяцы -->
-<div class="page" id="p2">
+<!-- Альбом -->
+<div id="album" style="display:none;">
   <h1 id="monthTitle"></h1>
   <img id="monthPhoto" src="">
   <p id="monthText"></p>
@@ -51,17 +88,15 @@ img { width:100%; max-height:200px; object-fit:cover; border-radius:15px; margin
 </div>
 
 <!-- Финал -->
-<div class="page" id="pFinal">
+<div id="final" style="display:none;">
   <h1>Софа, я люблю тебя ❤️</h1>
   <p>Мы вместе уже:</p>
   <div class="timer" id="timer"></div>
 </div>
 
-</div>
-
 <script>
-// Массив месяцев с подписями и фото
-const months=[
+// Массив месяцев
+const months = [
   {name:"Январь ❄️", text:"Наши первые воспоминания года...", img:"images/jan.jpg"},
   {name:"Февраль ❤️", text:"Месяц тепла и любви...", img:"images/feb.jpg"},
   {name:"Март 🌸", text:"Весна началась с нас...", img:"images/mar.jpg"},
@@ -76,34 +111,38 @@ const months=[
   {name:"Декабрь 🎄", text:"Праздничные воспоминания...", img:"images/dec.jpg"},
 ];
 
-let currentMonth=0;
+let step = 0; // 0=start,1=question,2=album
+let currentMonth = 0;
 
-// Перелистывание страниц
-function flip(num){
-  document.getElementById("p"+num).classList.add("flipped");
-  if(num===1){
-    currentMonth=0;
+function nextStep() {
+  if(step===0){
+    document.getElementById("start").style.display="none";
+    document.getElementById("question").style.display="block";
+    step=1;
+  } else if(step===1){
+    document.getElementById("question").style.display="none";
+    document.getElementById("album").style.display="block";
+    step=2;
     showMonth();
-  }
-}
-
-function nextMonth(){
-  currentMonth++;
-  if(currentMonth<months.length){
-    showMonth();
-  } else {
-    document.getElementById("book").querySelectorAll(".page").forEach(p=>p.classList.add("flipped"));
-    document.getElementById("pFinal").classList.remove("flipped");
-    startTimer();
-    startHearts();
   }
 }
 
 function showMonth(){
-  document.getElementById("p2").classList.remove("flipped");
-  document.getElementById("monthTitle").innerText=months[currentMonth].name;
-  document.getElementById("monthText").innerText=months[currentMonth].text;
-  document.getElementById("monthPhoto").src=months[currentMonth].img;
+  document.getElementById("monthTitle").innerText = months[currentMonth].name;
+  document.getElementById("monthText").innerText = months[currentMonth].text;
+  document.getElementById("monthPhoto").src = months[currentMonth].img;
+}
+
+function nextMonth(){
+  currentMonth++;
+  if(currentMonth < months.length){
+    showMonth();
+  } else {
+    document.getElementById("album").style.display="none";
+    document.getElementById("final").style.display="block";
+    startTimer();
+    startHearts();
+  }
 }
 
 // Таймер
@@ -117,28 +156,28 @@ function startTimer(){
     let h=Math.floor((totalSeconds%86400)/3600);
     let m=Math.floor((totalSeconds%3600)/60);
     let s=totalSeconds%60;
-    document.getElementById("timer").innerText=d+" дней "+h+" часов "+m+" минут "+s+" секунд";
+    document.getElementById("timer").innerText = d+" дней "+h+" часов "+m+" минут "+s+" секунд";
   },1000);
 }
 
 // Сердечки
 function startHearts(){
   setInterval(()=>{
-    const heart=document.createElement("div");
+    const heart = document.createElement("div");
     heart.classList.add("heart");
     heart.innerHTML="❤️";
-    heart.style.left=Math.random()*100+"vw";
-    heart.style.bottom="0";
+    heart.style.left = Math.random()*100+"vw";
+    heart.style.bottom = "0";
     document.body.appendChild(heart);
     setTimeout(()=>heart.remove(),5000);
   },300);
 }
 
 // Звёзды
-const canvas=document.getElementById("stars");
-const ctx=canvas.getContext("2d");
-canvas.width=window.innerWidth;
-canvas.height=window.innerHeight;
+const canvas = document.getElementById("stars");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 let stars=[];
 for(let i=0;i<200;i++){
   stars.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*2});
